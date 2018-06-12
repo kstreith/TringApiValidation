@@ -69,7 +69,7 @@ namespace Api.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> Put(string id, [FromBody] Meeting meeting)
+        public async Task<ActionResult<MeetingModel>> Put(string id, [FromBody] Meeting meeting)
         {
             var meetingModel = await _meetingRepository.GetMeeting(id);
             if (meetingModel == null) {
@@ -82,8 +82,15 @@ namespace Api.Controllers
                 Location = meeting.Location,
                 AttendeeLimit = meeting.AttendeeLimit
             };
-            await _meetingRepository.UpdateMeeting(id, newMeetingModel);
-            return new OkResult();            
+            var updatedMeetingModel = await _meetingRepository.UpdateMeeting(id, newMeetingModel);
+            var updatedMeeting = new Meeting {
+                Title = updatedMeetingModel.Title,
+                Description = updatedMeetingModel.Description,
+                EventDateTime = updatedMeetingModel.EventDateTime,
+                Location = updatedMeetingModel.Location,
+                AttendeeLimit = updatedMeetingModel.AttendeeLimit
+            };            
+            return new OkObjectResult(updatedMeeting);
         }
 
         [HttpDelete("{id}")]

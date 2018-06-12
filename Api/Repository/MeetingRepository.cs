@@ -59,11 +59,13 @@ namespace Api.Repository
             await client.DeleteDocumentAsync(dcUri);
         }
 
-        public virtual async Task UpdateMeeting(string id, MeetingModel meeting)
+        public virtual async Task<MeetingModel> UpdateMeeting(string id, MeetingModel meeting)
         {
             await CreateIfNeeded();
+            meeting.PrimaryKey = id;
             var dcUri = UriFactory.CreateDocumentUri(DbName, CollectionName, $"{id}-Meeting");
             await client.ReplaceDocumentAsync(dcUri, meeting);
+            return meeting;
         }
 
         public virtual async Task<List<MeetingModel>> GetAllMeetings()

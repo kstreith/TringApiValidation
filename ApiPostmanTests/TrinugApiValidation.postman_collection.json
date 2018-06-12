@@ -1,0 +1,510 @@
+{
+	"info": {
+		"_postman_id": "1e3ffbdc-3c98-4989-a3b6-19d9d07ab07e",
+		"name": "TrinugApiValidation",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Add Meeting",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "4a74bc4e-080d-4e18-be3c-068b9a258d3f",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test('Have 201 status code', function () {",
+							"   pm.response.to.have.status(201);",
+							"});",
+							"pm.test('Have Location header', () => {",
+							"   pm.response.to.have.header(\"Location\");",
+							"   var locationHeader = postman.getResponseHeader(\"Location\");",
+							"   lastSlash = locationHeader.lastIndexOf('/');",
+							"            ",
+							"    var apiRoute = locationHeader.substring(0, lastSlash);",
+							"    pm.test('Have Location header with correct prefix', () => {",
+							"        pm.expect(apiRoute).to.eql('/api/meeting');",
+							"    });",
+							"    var newMeetingId = locationHeader.substring(lastSlash + 1);",
+							"    pm.test('Have Location header with new meeting id', () => {",
+							"        pm.expect(newMeetingId).to.not.be.empty;",
+							"    });",
+							"    ",
+							"    if (newMeetingId) {",
+							"        pm.environment.set(\"newMeetingId\", newMeetingId);",
+							"    }",
+							"});",
+							"pm.test(\"Have Meeting shape in response\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an('object').that.has.all.keys('title', 'eventDateTime', 'location', 'description', 'attendeeLimit');",
+							"});",
+							"pm.test(\"Have correct Meeting values in response\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.title).to.eql(\"Meeting from Postman\");",
+							"    pm.expect(jsonData.eventDateTime).to.have.string(\"2017-03-25T00:00:00\");",
+							"    pm.expect(jsonData.description).to.eql(\"Fake Description\");",
+							"    pm.expect(jsonData.attendeeLimit).to.be.null;",
+							"    pm.expect(jsonData.location).to.eql(\"Fake Location\");",
+							"});",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"Title\": \"Meeting from Postman\",\n\t\"Location\": \"Fake Location\",\n\t\"Description\": \"Fake Description\",\n\t\"EventDateTime\": \"2017-03-25\"\n}"
+				},
+				"url": {
+					"raw": "{{host}}/api/meeting",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"meeting"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Meeting - Title Required",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "2897ad4b-81d8-4dc9-b75b-b3282ba19483",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test('Have 400 status code', function () {",
+							"   pm.response.to.have.status(400);",
+							"});",
+							"pm.test('Not Have Location header', () => {",
+							"   pm.response.to.not.have.header(\"Location\");",
+							"});",
+							"pm.test(\"Have Error Shape in response\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an('object').that.has.all.keys('Title');",
+							"});",
+							"pm.test(\"Have correct Error values in response\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.Title).to.include(\"The Title field is required.\");",
+							"});",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"Location\": \"Fake Location\",\n\t\"Description\": \"Fake Description\",\n\t\"EventDateTime\": \"2017-03-25\"\n}"
+				},
+				"url": {
+					"raw": "{{host}}/api/meeting",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"meeting"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get All Meetings",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "c0e97e2d-632c-45bc-8c08-b4f0aa863429",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test('Have 200 status code', () => {",
+							"   pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"Have at least one item in return array\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.length).to.be.above(1);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "\"fakeTitle\""
+				},
+				"url": {
+					"raw": "{{host}}/api/meeting",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"meeting"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Meeting - Not Found",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "106dcb3a-e123-4881-b2cf-1a04e4e45b96",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test('Have 404 status code', () => {",
+							"   pm.response.to.have.status(404);",
+							"});",
+							"pm.test(\"Have empty response\", () => {",
+							"    pm.expect(pm.response.text()).to.be.empty;",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "\"fakeTitle\""
+				},
+				"url": {
+					"raw": "{{host}}/api/meeting/bad-id",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"meeting",
+						"bad-id"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Meeting",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "dd1b2d46-c1d8-4936-9fd5-e4c68b5f5e5b",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test('Have 200 status code', () => {",
+							"   pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"Have Meeting shape in response\", () => {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an('object').that.has.all.keys('title', 'eventDateTime', 'location', 'description', 'attendeeLimit');",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "\"fakeTitle\""
+				},
+				"url": {
+					"raw": "{{host}}/api/meeting/{{newMeetingId}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"meeting",
+						"{{newMeetingId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Meeting",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "be4d6c10-a12d-4088-8a89-26471118a209",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test('Have 200 status code', () => {",
+							"   pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"Have Meeting shape in response\", () => {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an('object').that.has.all.keys('title', 'eventDateTime', 'location', 'description', 'attendeeLimit');",
+							"});",
+							"pm.test(\"Have correct Meeting values in response\", () => {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.title).to.have.string(\"Updated title\");",
+							"});",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"Title\": \"Updated title {{$randomInt}}\",\n\t\"Location\": \"Fake Location\",\n\t\"Description\": \"Updated Description {{$randomInt}}\",\n\t\"EventDateTime\": \"2017-03-26\"\n}"
+				},
+				"url": {
+					"raw": "{{host}}/api/meeting/{{newMeetingId}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"meeting",
+						"{{newMeetingId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Meeting - Title Required",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "2897ad4b-81d8-4dc9-b75b-b3282ba19483",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test('Have 400 status code', function () {",
+							"   pm.response.to.have.status(400);",
+							"});",
+							"pm.test('Not Have Location header', () => {",
+							"   pm.response.to.not.have.header(\"Location\");",
+							"});",
+							"pm.test(\"Have Error Shape in response\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an('object').that.has.all.keys('Title');",
+							"});",
+							"pm.test(\"Have correct Error values in response\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.Title).to.include(\"The Title field is required.\");",
+							"});",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"Location\": \"Fake Location\",\n\t\"Description\": \"Fake Description\",\n\t\"EventDateTime\": \"2017-03-25\"\n}"
+				},
+				"url": {
+					"raw": "{{host}}/api/meeting/{{newMeetingId}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"meeting",
+						"{{newMeetingId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Meeting - Not Found",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "890b8c02-c6b3-48c6-a98e-627d9c67178c",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test('Have 404 status code', function () {",
+							"   pm.response.to.have.status(404);",
+							"});",
+							"pm.test(\"Have empty response\", function () {",
+							"    pm.expect(pm.response.text()).to.be.empty;",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"Title\": \"Updated title {{$randomInt}}\",\n\t\"Location\": \"Fake Location\",\n\t\"Description\": \"Updated Description {{$randomInt}}\",\n\t\"EventDateTime\": \"2017-03-26\"\n}"
+				},
+				"url": {
+					"raw": "{{host}}/api/meeting/bad-id",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"meeting",
+						"bad-id"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Meeting",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "c6892f6e-7070-4f6f-b18c-138b47db1449",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test('Have 200 status code', function () {",
+							"   pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"Have empty response\", function () {",
+							"    pm.expect(pm.response.text()).to.be.empty;",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{host}}/api/meeting/{{newMeetingId}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"meeting",
+						"{{newMeetingId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Meeting - Not Found",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "edc0372b-0a03-4caf-856c-529c82731959",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test('Have 404 status code', function () {",
+							"   pm.response.to.have.status(404);",
+							"});",
+							"pm.test(\"Have empty response\", function () {",
+							"    pm.expect(pm.response.text()).to.be.empty;",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{host}}/api/meeting/{{newMeetingId}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"meeting",
+						"{{newMeetingId}}"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
